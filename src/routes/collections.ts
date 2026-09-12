@@ -4,6 +4,7 @@ import { prisma } from "../prisma.js";
 import { upload } from "../middleware/upload.js";
 import { AuthenticatedRequest, signToken } from "../middleware/auth.js";
 import { io, broadcastSSE } from "../index.js";
+import { uploadFileToCloudinary } from "../utils/cloudinary.js";
 
 export const router = Router();
 
@@ -186,7 +187,8 @@ router.patch(
 
       // File upload for avatar
       if (req.file) {
-        updateData.avatar = req.file.filename;
+        const cloudUrl = await uploadFileToCloudinary(req.file.path, "scitech/avatars");
+        updateData.avatar = cloudUrl || req.file.filename;
       }
 
       // Password change
@@ -335,8 +337,16 @@ router.post(
       const { name, description, category, type, price, createdBy } = req.body;
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-      const bannerFilename = files?.banner?.[0]?.filename || "";
-      const avatarFilename = files?.avatar?.[0]?.filename || "";
+      let bannerFilename = files?.banner?.[0]?.filename || "";
+      let avatarFilename = files?.avatar?.[0]?.filename || "";
+      if (files?.banner?.[0]) {
+        const cloudUrl = await uploadFileToCloudinary(files.banner[0].path, "scitech/banners");
+        if (cloudUrl) bannerFilename = cloudUrl;
+      }
+      if (files?.avatar?.[0]) {
+        const cloudUrl = await uploadFileToCloudinary(files.avatar[0].path, "scitech/avatars");
+        if (cloudUrl) avatarFilename = cloudUrl;
+      }
 
       const creatorId = createdBy || req.userId;
       if (!creatorId) {
@@ -531,7 +541,11 @@ router.post(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { title, content, post, community, user } = req.body;
-      const mediaFilename = req.file ? req.file.filename : "";
+      let mediaFilename = req.file ? req.file.filename : "";
+      if (req.file) {
+        const cloudUrl = await uploadFileToCloudinary(req.file.path, "scitech/posts");
+        if (cloudUrl) mediaFilename = cloudUrl;
+      }
 
       const authorId = user || req.userId;
       if (!authorId || !community) {
