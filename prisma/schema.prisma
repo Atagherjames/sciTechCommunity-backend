@@ -1,0 +1,141 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  password        String
+  name            String
+  avatar          String   @default("")
+  banner          String   @default("")
+  description     String   @default("")
+  location        String   @default("")
+  verified        Boolean  @default(false)
+  emailVisibility Boolean  @default(true)
+  firstLogin      Boolean  @default(false)
+  created         DateTime @default(now())
+  updated         DateTime @updatedAt
+
+  createdCommunities   Community[]               @relation("CreatedCommunities")
+  communityMemberships CommunityMember[]
+  posts                Post[]
+  comments             Comment[]
+  postLikes            PostLike[]
+  conversations        ConversationParticipant[]
+  sentMessages         Message[]                 @relation("SentMessages")
+  receivedMessages     Message[]                 @relation("ReceivedMessages")
+}
+
+model Community {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  price       String
+  type        String
+  description String
+  banner      String   @default("")
+  avatar      String   @default("")
+  createdBy   String
+  created     DateTime @default(now())
+  updated     DateTime @updatedAt
+
+  creator User              @relation("CreatedCommunities", fields: [createdBy], references: [id], onDelete: Cascade)
+  members CommunityMember[]
+  posts   Post[]
+}
+
+model CommunityMember {
+  id          String   @id @default(uuid())
+  communityId String
+  userId      String
+  joinedAt    DateTime @default(now())
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, userId])
+}
+
+model Post {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  post        String   @default("")
+  media       String   @default("")
+  communityId String
+  userId      String
+  created     DateTime @default(now())
+  updated     DateTime @updatedAt
+
+  community Community  @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  likes     PostLike[]
+}
+
+model PostLike {
+  id     String @id @default(uuid())
+  postId String
+  userId String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+model Comment {
+  id      String   @id @default(uuid())
+  content String
+  postId  String
+  userId  String
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id          String   @id @default(uuid())
+  communityId String   @default("")
+  seen        Boolean  @default(false)
+  created     DateTime @default(now())
+  updated     DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  id             String @id @default(uuid())
+  conversationId String
+  userId         String
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  senderId       String
+  receiverId     String
+  communityId    String   @default("")
+  message        String
+  seen           Boolean  @default(false)
+  created        DateTime @default(now())
+  updated        DateTime @updatedAt
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver     User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+}
