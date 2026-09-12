@@ -1,141 +1,150 @@
-# ?? SciTech Community — Enterprise Express & PostgreSQL Backend
+# SciTech Community Backend API
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge&logo=express)](https://expressjs.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Prisma ORM](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)](https://www.prisma.io/)
-[![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=Cloudinary&logoColor=white)](https://cloudinary.com/)
-[![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white)](https://socket.io/)
+A high-performance REST API and real-time backend service built with Express.js, TypeScript, PostgreSQL, and Prisma ORM for the SciTech Community platform.
 
-A high-performance, modular backend API built for the **SciTech Community** platform. Designed to handle real-time collaborative communication, community discovery, user governance, threaded discussions, and cloud media delivery at scale.
-
-**Lead Developer & Architect:** [James Atagher](https://github.com/Atagherjames) | [Email](mailto:jamesatagher@gmail.com)
+**Author:** James Atagher ([GitHub](https://github.com/Atagherjames) | [Email](mailto:jamesatagher@gmail.com))
 
 ---
 
-## ??? Architecture & Core Features
+## Technical Overview
 
-### 1. Robust Data Layer (Prisma ORM + PostgreSQL)
-- Strongly typed relational database schemas powered by **Prisma**.
-- Optimized join queries and cascade deletions across 9 core models:
-  - **Users**: Account lifecycle, password hashing (cryptjs), profiles, email verification.
-  - **Communities**: Group discovery, categorization (Science, Tech, AI, Biotech), membership pricing, privacy controls.
-  - **CommunityMembers**: Many-to-many relationship mapping user memberships and role levels.
-  - **Posts & Likes**: Community forum posts, rich text, media attachments, and user like reactions.
-  - **Comments**: Hierarchical threaded discussions per post.
-  - **Conversations & Messages**: 1-on-1 and group messaging with read receipts and timestamps.
+The SciTech Community backend provides the data layer, authentication infrastructure, and real-time communication pipeline for community discovery, content publication, and collaborative networking.
 
-### 2. Cloud Media Pipeline (Cloudinary CDN)
-- Fully automated asset pipeline for user avatars, community banners, and post attachments.
-- Multipart form parsing with **Multer**, streaming directly to **Cloudinary** for global edge CDN distribution and automatic format optimization.
-
-### 3. Dual Real-Time Communication
-- **Socket.io WebSockets**: Instant bi-directional messaging and live updates.
-- **Server-Sent Events (SSE)**: Event streaming at \/api/realtime\ enabling reactive UI updates without client polling.
-
-### 4. Enterprise Security
-- Stateless **JWT (JSON Web Token)** authentication.
-- Cryptographic password hashing using **bcryptjs** with 10 salt rounds.
-- Configurable **CORS** middleware and strict input validation.
+### Core Capabilities
+- **Relational Data Persistence:** Structured schemas and migrations managed via Prisma ORM connected to PostgreSQL.
+- **Stateless Authentication:** JSON Web Token (JWT) session validation with bcryptjs cryptographic password hashing.
+- **Cloud Media Storage:** Direct multipart media streaming to Cloudinary CDN for optimized asset storage and delivery.
+- **Real-Time Engine:** Bi-directional event distribution using Socket.io and Server-Sent Events (SSE) for live message dispatch.
+- **Backward-Compatible Architecture:** Endpoint routing tailored to client requirements, minimizing frontend overhead and refactoring.
 
 ---
 
-## ?? API Endpoint Reference
+## Tech Stack
 
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| **GET** | \/api/health\ | Server status and health metrics | No |
-| **POST** | \/api/collections/users/records\ | Register a new user account | No |
-| **POST** | \/api/collections/users/auth-with-password\ | User authentication & JWT issuance | No |
-| **GET** | \/api/collections/users/records/:id\ | Fetch user profile data | No |
-| **PATCH** | \/api/collections/users/records/:id\ | Update profile or change password | Yes |
-| **GET** | \/api/collections/all_communities/records\ | List all communities with creator & member counts | No |
-| **GET** | \/api/collections/all_communities/records/:id\ | Retrieve community details | No |
-| **POST** | \/api/collections/all_communities/records\ | Create a new community (with banner & avatar upload) | Yes |
-| **PATCH** | \/api/collections/all_communities/records/:id\ | Join, leave, or modify community settings | Yes |
-| **DELETE** | \/api/collections/all_communities/records/:id\ | Delete community and cascade relations | Yes |
-| **GET** | \/api/collections/posts/records\ | Fetch community posts (supports filter & sorting) | No |
-| **POST** | \/api/collections/posts/records\ | Publish new post with optional media attachment | Yes |
-| **PATCH** | \/api/collections/posts/records/:id\ | Update post content or like reactions | Yes |
-| **DELETE** | \/api/collections/posts/records/:id\ | Remove a post | Yes |
-| **GET** | \/api/collections/comments/records\ | List comments by post ID | No |
-| **POST** | \/api/collections/comments/records\ | Post a new comment | Yes |
-| **GET** | \/api/collections/conversations/records\ | Fetch direct conversations for authenticated user | Yes |
-| **POST** | \/api/collections/messages/records\ | Send direct chat message with real-time push | Yes |
-| **GET** | \/api/realtime\ | SSE connection endpoint for reactive subscriptions | No |
+- **Runtime & Language:** Node.js (v18+), TypeScript
+- **Web Framework:** Express.js
+- **Database:** PostgreSQL
+- **Object-Relational Mapping:** Prisma ORM (v5)
+- **Authentication & Security:** JWT (jsonwebtoken), bcryptjs, CORS
+- **Media Pipeline:** Multer, Cloudinary SDK
+- **Real-Time Transport:** Socket.io, Server-Sent Events (SSE)
 
 ---
 
-## ?? Environment Variables
+## System Architecture & Data Schema
 
-Create a \.env\ file in the root directory:
+The database consists of 9 normalized relational models:
 
-\\\env
-# PostgreSQL Database Connection String
+- **User:** Account credentials, display profile, bio, location, verification status.
+- **Community:** Community metadata, category classification, privacy type, pricing tier, avatar, and banner.
+- **CommunityMember:** Many-to-many junction model linking users to joined communities.
+- **Post:** Threaded community discussions, text content, and Cloudinary media references.
+- **PostLike:** Unique user engagement mapping per post.
+- **Comment:** Chronological discussions attached to specific posts.
+- **Conversation:** Direct messaging threads between authenticated participants.
+- **ConversationParticipant:** Relational junction between users and conversation channels.
+- **Message:** Real-time messages with sender, receiver, timestamp, and read receipts.
+
+---
+
+## API Reference
+
+### Health Check
+- GET /api/health — Returns service status and server uptime.
+
+### Authentication & Users
+- POST /api/collections/users/auth-with-password — Authenticates user credentials and returns a signed JWT.
+- POST /api/collections/users/records — Registers a new user account.
+- GET /api/collections/users/records/:id — Retrieves profile data for a specific user.
+- PATCH /api/collections/users/records/:id — Updates user profile information, avatar, or password.
+
+### Communities
+- GET /api/collections/all_communities/records — Retrieves a list of all active communities with member relations.
+- GET /api/collections/all_communities/records/:id — Fetches complete details for a single community.
+- POST /api/collections/all_communities/records — Creates a new community with multipart banner and avatar upload.
+- PATCH /api/collections/all_communities/records/:id — Updates community configuration, membership additions, or leaves.
+- DELETE /api/collections/all_communities/records/:id — Removes a community and associated records.
+
+### Posts & Comments
+- GET /api/collections/posts/records — Returns posts filtered by community identifier and sorted chronologically.
+- GET /api/collections/posts/records/:id — Fetches a single post by ID.
+- POST /api/collections/posts/records — Publishes a new post with optional media attachment.
+- PATCH /api/collections/posts/records/:id — Modifies post content or updates like lists.
+- DELETE /api/collections/posts/records/:id — Deletes a post.
+- GET /api/collections/comments/records — Lists comments associated with a specific post.
+- POST /api/collections/comments/records — Adds a comment to an existing post.
+
+### Direct Messaging & Real-Time
+- GET /api/collections/conversations/records — Lists active conversation threads for the authenticated user.
+- GET /api/collections/conversations/records/:id — Returns conversation metadata and message history.
+- POST /api/collections/messages/records — Transmits a chat message and triggers real-time distribution.
+- GET /api/realtime — Server-Sent Events (SSE) stream endpoint for live event subscriptions.
+
+---
+
+## Environment Configuration
+
+Configure the following variables in a .env file at the root of the project:
+
+`env
 DATABASE_URL="postgresql://user:password@localhost:5432/scitech_db?schema=public"
-
-# Express Port & Security
 PORT=5000
-JWT_SECRET="your-super-secret-jwt-key"
+JWT_SECRET="your-jwt-secret"
 CLIENT_URL="http://localhost:5173"
 
-# Cloudinary Cloud Storage Credentials
-CLOUDINARY_CLOUD_NAME="your-cloud-name"
-CLOUDINARY_API_KEY="your-api-key"
-CLOUDINARY_API_SECRET="your-api-secret"
-CLOUDINARY_URL="cloudinary://api_key:api_secret@cloud_name"
-\\\
+CLOUDINARY_CLOUD_NAME="dx0ll70so"
+CLOUDINARY_API_KEY="637354963884816"
+CLOUDINARY_API_SECRET="your-cloudinary-secret"
+CLOUDINARY_URL="cloudinary://key:secret@cloud_name"
+`
 
 ---
 
-## ?? Quick Start (Local Development)
+## Local Development
 
 ### 1. Install Dependencies
-\\\ash
+`ash
 npm install
-\\\
+`
 
-### 2. Generate Prisma Client & Sync Database
-\\\ash
+### 2. Generate Prisma Client and Sync Database
+`ash
 npx prisma generate
 npx prisma db push
-\\\
+`
 
-### 3. Seed Starter Data (Optional)
-Creates an initial administrator account (\jamesatagher@gmail.com\ / \Password123!\) and starter tech/science communities:
-\\\ash
+### 3. Seed Initial Database Records (Optional)
+`ash
 npx tsx prisma/seed.ts
-\\\
+`
 
-### 4. Start Development Server
-\\\ash
+### 4. Run Development Server
+`ash
 npm run dev
-\\\
-The server will boot with hot-reloading at **\http://localhost:5000\**.
+`
+The server listens on http://localhost:5000.
 
 ---
 
-## ?? Production Deployment (100% Free Tier Guide)
+## Production Deployment Guide
 
-### Database: [Neon.tech](https://neon.tech/) (Free Managed PostgreSQL)
-1. Sign up on Neon.tech and create a project named \scitech-db\.
-2. Copy the supplied \DATABASE_URL\ connection string.
+### Database: Neon (Managed PostgreSQL)
+1. Provision a free PostgreSQL instance on Neon.tech.
+2. Copy the supplied connection string into DATABASE_URL.
 
-### API Host: [Render.com](https://render.com/) (Free Node.js Web Service)
-1. Create a **New Web Service** connected to your GitHub repository.
-2. Configure build & start commands:
-   - **Build Command:** \
-pm install && npx prisma generate && npx prisma db push && npm run build\
-   - **Start Command:** \
-pm start\
-3. Add your environment variables (\DATABASE_URL\, \JWT_SECRET\, \CLOUDINARY_*\, \CLIENT_URL\).
-4. Click **Deploy Web Service** — Render automatically builds and hosts the API with SSL enabled!
+### Application Hosting: Render
+1. Create a new Web Service connected to this repository.
+2. Set the build and start commands:
+   - **Build Command:** 
+pm install && npx prisma generate && npx prisma db push && npm run build
+   - **Start Command:** 
+pm start
+3. Add the required environment variables in the Render dashboard.
+4. Deploy the service to receive a public HTTPS endpoint.
 
 ---
 
-## ????? Author & Contact
+## License & Authorship
 
-**James Atagher**  
-- **GitHub:** [@Atagherjames](https://github.com/Atagherjames)  
-- **Email:** [jamesatagher@gmail.com](mailto:jamesatagher@gmail.com)  
-- **Project:** SciTech Community Full-Stack Platform
+Developed and maintained by **James Atagher**.  
+Repository: [github.com/Atagherjames/scitech-community-backend](https://github.com/Atagherjames/scitech-community-backend)
