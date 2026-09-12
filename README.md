@@ -89,13 +89,13 @@ Configure the following variables in a .env file at the root of the project:
 `env
 DATABASE_URL="postgresql://user:password@localhost:5432/scitech_db?schema=public"
 PORT=5000
-JWT_SECRET="your-jwt-secret"
+JWT_SECRET="your_jwt_secret"
 CLIENT_URL="http://localhost:5173"
 
-CLOUDINARY_CLOUD_NAME="dx0ll70so"
-CLOUDINARY_API_KEY="637354963884816"
-CLOUDINARY_API_SECRET="your-cloudinary-secret"
-CLOUDINARY_URL="cloudinary://key:secret@cloud_name"
+CLOUDINARY_CLOUD_NAME="your_cloudinary_cloud_name"
+CLOUDINARY_API_KEY="your_cloudinary_api_key"
+CLOUDINARY_API_SECRET="your_cloudinary_api_secret"
+CLOUDINARY_URL="cloudinary://your_api_key:your_api_secret@your_cloud_name"
 `
 
 ---
@@ -126,21 +126,31 @@ The server listens on http://localhost:5000.
 
 ---
 
-## Production Deployment Guide
+## Deploying on Render (Backend & PostgreSQL Database)
 
-### Database: Neon (Managed PostgreSQL)
-1. Provision a free PostgreSQL instance on Neon.tech.
-2. Copy the supplied connection string into DATABASE_URL.
+### 1. Create a PostgreSQL Database on Render
+1. In the Render Dashboard, click **New +** ? **PostgreSQL**.
+2. Name the database (e.g., scitech-db).
+3. Select the **Free** tier.
+4. Click **Create Database**.
+5. Copy the **Internal Database URL** (for services running on Render) or **External Database URL**.
 
-### Application Hosting: Render
-1. Create a new Web Service connected to this repository.
-2. Set the build and start commands:
+### 2. Create the Express Web Service on Render
+1. Click **New +** ? **Web Service** and connect this repository.
+2. Configure the build and start commands:
    - **Build Command:** 
 pm install && npx prisma generate && npx prisma db push && npm run build
    - **Start Command:** 
 pm start
-3. Add the required environment variables in the Render dashboard.
-4. Deploy the service to receive a public HTTPS endpoint.
+3. Under **Environment Variables**, add:
+   - DATABASE_URL: Your Render database URL from Step 1
+   - JWT_SECRET: A secure random string
+   - PORT: 5000
+   - CLIENT_URL: *
+   - CLOUDINARY_CLOUD_NAME: Your Cloudinary Cloud Name
+   - CLOUDINARY_API_KEY: Your Cloudinary API Key
+   - CLOUDINARY_API_SECRET: Your Cloudinary API Secret
+4. Click **Deploy Web Service**. Render will automatically run migrations and launch the Express API.
 
 ---
 
